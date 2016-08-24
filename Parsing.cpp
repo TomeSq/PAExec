@@ -85,7 +85,7 @@ bool GetComputerList(Settings& settings, LPCWSTR& cmdLine)
 			LPCWSTR fileStart = cmdLine + 1;
 			while(!iswspace(*cmdLine) && *cmdLine)
 				cmdLine++;
-			CString file = CString(fileStart).Left(cmdLine - fileStart);
+			CString file = CString(fileStart).Left(static_cast<int>(cmdLine - fileStart));
 			
 			file = ExpandToFullPath(file); //search on path if no path specified
 
@@ -93,14 +93,15 @@ bool GetComputerList(Settings& settings, LPCWSTR& cmdLine)
 			if(false == ReadTextFile(file, content))
 				return false;
 
-			wchar_t* pC = wcstok(content.LockBuffer(), L"\r\n");
+			wchar_t *next_token = NULL;
+			wchar_t* pC = wcstok_s(content.LockBuffer(), L"\r\n", &next_token);
 			while(NULL != pC)
 			{
 				CString s = pC;
 				s.Trim();
 				if(FALSE == s.IsEmpty())
 					settings.computerList.push_back(s);
-				pC = wcstok(NULL, L"\r\n");
+				pC = wcstok_s(NULL, L"\r\n", &next_token);
 			}
 			if(settings.computerList.empty())
 				Log(L"Computer list file empty", true);
@@ -115,15 +116,16 @@ bool GetComputerList(Settings& settings, LPCWSTR& cmdLine)
 				//skip forward to whitespace
 				while(!iswspace(*cmdLine) && *cmdLine)
 					cmdLine++;
-				CString compList = CString(compListStart).Left(cmdLine - compListStart);
-				wchar_t* pC = wcstok(compList.LockBuffer(), L",");
+				CString compList = CString(compListStart).Left(static_cast<int>(cmdLine - compListStart));
+				wchar_t *next_token = NULL;
+				wchar_t* pC = wcstok_s(compList.LockBuffer(), L",", &next_token);
 				while(NULL != pC)
 				{
 					CString s = pC;
 					s.Trim();
 					if(FALSE == s.IsEmpty())
 						settings.computerList.push_back(s);
-					pC = wcstok(NULL, L",");
+					pC = wcstok_s(NULL, L",", &next_token);
 				}
 
 				if(settings.computerList.empty())
@@ -349,13 +351,14 @@ bool ParseCommandLine(Settings& settings, LPCWSTR cmdLine)
 		if(cmdParser.HasKey(L"a"))
 		{
 			CString procList = cmdParser.GetVal(L"a");
-			LPCWSTR pC = wcstok(procList.LockBuffer(), L",");
+			wchar_t *next_token = NULL;
+			LPCWSTR pC = wcstok_s(procList.LockBuffer(), L",", &next_token);
 			while(NULL != pC)
 			{
 				DWORD num = wtodw(pC);
 				if(0 != num)
 					settings.allowedProcessors.push_back((WORD)num);
-				pC = wcstok(NULL, L",");
+				pC = wcstok_s(NULL, L",", &next_token);
 			}
 			if(settings.allowedProcessors.empty())
 			{
@@ -434,7 +437,8 @@ bool ParseCommandLine(Settings& settings, LPCWSTR cmdLine)
 			CString content, passFile = cmdParser.GetVal(L"p@");
 			passFile.Trim(L"\""); //remove possible quotes
 			ReadTextFile(passFile, content);
-			wchar_t* pC = wcstok(content.LockBuffer(), L"\r\n");
+			wchar_t *next_token = NULL;
+			wchar_t* pC = wcstok_s(content.LockBuffer(), L"\r\n", &next_token);
 			settings.password = pC;
 			settings.password.Trim(L" ");
 			content.UnlockBuffer();
@@ -598,7 +602,8 @@ bool ParseCommandLine(Settings& settings, LPCWSTR cmdLine)
 			tmp.UnlockBuffer();
 			settings.srcDir = (LPCWSTR)tmp; //store folder
 
-			wchar_t* pC = wcstok(content.LockBuffer(), L"\r\n");
+			wchar_t *next_token = NULL;
+			wchar_t* pC = wcstok_s(content.LockBuffer(), L"\r\n", &next_token);
 			while(NULL != pC)
 			{
 				CString s = pC;
@@ -609,7 +614,7 @@ bool ParseCommandLine(Settings& settings, LPCWSTR cmdLine)
 					fi.filenameOnly = s;
 					settings.srcFileInfos.push_back(fi);
 				}
-				pC = wcstok(NULL, L"\r\n");
+				pC = wcstok_s(NULL, L"\r\n", &next_token);
 			}
 			if(settings.srcFileInfos.empty())
 			{
@@ -673,7 +678,7 @@ bool ParseCommandLine(Settings& settings, LPCWSTR cmdLine)
 			pArgPtr = wcschr(pAppStart, L'"');
 			if(NULL == pArgPtr)
 				return false;
-			settings.app = CString(pAppStart).Left(pArgPtr - pAppStart);
+			settings.app = CString(pAppStart).Left(static_cast<int>(pArgPtr - pAppStart));
 			pArgPtr++; //get past quote we're on
 		}
 		else
@@ -681,7 +686,7 @@ bool ParseCommandLine(Settings& settings, LPCWSTR cmdLine)
 			//not quoted, so must be white space delimited
 			while(!iswspace(*pArgPtr) && *pArgPtr)
 				pArgPtr++;
-			settings.app = CString(pAppStart).Left(pArgPtr - pAppStart);
+			settings.app = CString(pAppStart).Left(static_cast<int>(pArgPtr - pAppStart));
 		}
 
 		if(settings.app.IsEmpty())

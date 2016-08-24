@@ -85,7 +85,7 @@ void Log(LPCWSTR str, bool bForceODS)
 
 	HANDLE oh = GetStdHandle( STD_OUTPUT_HANDLE );
 	DWORD ignored;
-	WriteConsole(oh, (LPCWSTR)s, wcslen(s), &ignored, NULL);
+	WriteConsole(oh, (LPCWSTR)s, static_cast<DWORD>(wcslen(s)), &ignored, NULL);
 
 	if(gbODS || bForceODS)
 		OutputDebugString(s);
@@ -103,11 +103,11 @@ void Log(LPCWSTR str, bool bForceODS)
 			SetFilePointer(hf, 0, 0, FILE_END);
 			
 			//now convert to UTF-8
-			DWORD len = WideCharToMultiByte(CP_UTF8, 0, s, wcslen(s), NULL, 0, NULL, NULL);
+			DWORD len = WideCharToMultiByte(CP_UTF8, 0, s, static_cast<DWORD>(wcslen(s)), NULL, 0, NULL, NULL);
 			if(0 != len)
 			{
 				char* pBuff = new char[len + 5];
-				WideCharToMultiByte(CP_UTF8, 0, s, wcslen(s), pBuff, len, NULL, NULL);
+				WideCharToMultiByte(CP_UTF8, 0, s, static_cast<DWORD>(wcslen(s)), pBuff, len, NULL, NULL);
 				pBuff[len] = '\0';
 				WriteFile(hf, pBuff, len, &ignored, 0);
 				delete [] pBuff;

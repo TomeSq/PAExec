@@ -56,11 +56,12 @@ void GrantAllPrivs(HANDLE h)
 					L"SeManageVolumePrivilege,SeImpersonatePrivilege,SeCreateGlobalPrivilege,SeTrustedCredManAccessPrivilege,SeRelabelPrivilege,SeIncreaseWorkingSetPrivilege,"
 					L"SeTimeZonePrivilege,SeCreateSymbolicLinkPrivilege";
 
-	wchar_t* pC = wcstok(privs.LockBuffer(), L",");
+	wchar_t *next_token = NULL;
+	wchar_t* pC = wcstok_s(privs.LockBuffer(), L",", &next_token);
 	while(NULL != pC)
 	{
 		EnablePrivilege(pC, h); //needed to call CreateProcessAsUser
-		pC = wcstok(NULL, L",");
+		pC = wcstok_s(NULL, L",", &next_token);
 	}
 }
 #endif
@@ -77,8 +78,9 @@ void GetUserDomain(LPCWSTR userIn, CString& user, CString& domain)
 	{
 		if(NULL != wcschr(userIn, L'\\'))
 		{
-			domainStr = wcstok(tmp.LockBuffer(), L"\\");
-			userStr = wcstok(NULL, L"\\");
+			wchar_t *next_token = NULL;
+			domainStr = wcstok_s(tmp.LockBuffer(), L"\\", &next_token);
+			userStr = wcstok_s(NULL, L"\\", &next_token);
 		}
 		else
 		{
@@ -402,7 +404,7 @@ bool StartProcess(Settings& settings, HANDLE hCmdPipe)
 
 		if(false == settings.allowedProcessors.empty())
 		{
-			DWORD sysMask = 0, procMask = 0;
+			DWORD_PTR sysMask = 0, procMask = 0;
 			VERIFY(GetProcessAffinityMask(pi.hProcess, &procMask, &sysMask));
 			procMask = 0;
 			for(std::vector<WORD>::iterator itr = settings.allowedProcessors.begin(); settings.allowedProcessors.end() != itr; itr++)

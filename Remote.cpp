@@ -951,7 +951,7 @@ const BYTE* RemMsg::GetDataToSend(DWORD& totalLen)
 
 	//build our send buffer
 	_ASSERT(sizeof(m_msgID) == sizeof(WORD));
-	totalLen = m_payload.size() + sizeof(WORD) + sizeof(DWORD) + sizeof(DWORD);
+	totalLen = static_cast<DWORD>(m_payload.size() + sizeof(WORD) + sizeof(DWORD) + sizeof(DWORD));
 	if(MSGID_SETTINGS == m_msgID)
 	{
 		//send an extra DWORD of our random XOR value
@@ -989,7 +989,7 @@ const BYTE* RemMsg::GetDataToSend(DWORD& totalLen)
 
 	if(NULL != pXORStart)
 	{
-		DWORD dataLen = pPtr - pXORStart;
+		DWORD dataLen = static_cast<DWORD>(pPtr - pXORStart);
 		//flip the rest of the data
 		for(DWORD i = 0; i < dataLen - (sizeof(DWORD) - 1); i++)
 		{
